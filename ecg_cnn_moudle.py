@@ -41,14 +41,13 @@ class cnn_ecg_model(th.nn.Module):
         self.pooling3 = th.nn.AvgPool1d(kernel_size=(3, 1), stride=2)
         # 全连接
         self.fc = th.nn.Linear(128, 5, bias=False)
-        d
+
     def forward(self, x):
         print(x.size)
         batch_size = x.size
         x = th.from_numpy(x)
         x = self.conv1(x)
         x = F.relu(x)
-        print('ok')
         x = self.pooling1(x)
         x = self.pooling2(F.relu(self.conv2(x)))
         x = self.pooling3(F.relu(self.conv3(x)))
