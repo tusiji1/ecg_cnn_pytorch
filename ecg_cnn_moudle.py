@@ -32,24 +32,33 @@ class cnn_ecg_model(th.nn.Module):
         #         >>> m = nn.Conv2d(16, 33, (3, 5), stride=(2, 1), padding=(4, 2), dilation=(3, 1))
         #         >>> input = torch.randn(20, 16, 50, 100)
         #         >>> output = m(input)
-        self.conv1 = th.nn.Conv1d(1, 4, kernel_size=(21, 1), stride=1, padding_mode='zeros')
-        self.conv2 = th.nn.Conv1d(4, 16, kernel_size=(23, 1), stride=1, padding_mode='zeros')
-        self.conv3 = th.nn.Conv1d(16, 32, kernel_size=(25, 1), stride=1, padding_mode='zeros')
-        self.conv4 = th.nn.Conv1d(32, 64, kernel_size=(27, 1), stride=1, padding_mode='zeros')
+
+        #卷积核的表示方式不同 3和(3,1)不一样   3是一维 (3,1)是二维
+        self.conv1 = th.nn.Conv1d(1, 4, kernel_size=21, stride=1, padding_mode='zeros')
+        self.conv2 = th.nn.Conv1d(4, 16, kernel_size=23, stride=1, padding_mode='zeros')
+        self.conv3 = th.nn.Conv1d(16, 32, kernel_size=25, stride=1, padding_mode='zeros')
+        self.conv4 = th.nn.Conv1d(32, 64, kernel_size=12, stride=1, padding_mode='zeros')
         # pool
-        self.pooling1 = th.nn.MaxPool2d(kernel_size=3, stride=2)
-        self.pooling2 = th.nn.MaxPool2d(kernel_size=(3, 1), stride=2)
-        self.pooling3 = th.nn.AvgPool2d(kernel_size=(3, 1), stride=2)
+        self.pooling1 = th.nn.MaxPool1d(kernel_size=3, stride=2)
+        self.pooling2 = th.nn.MaxPool1d(kernel_size=3, stride=2)
+        self.pooling3 = th.nn.AvgPool1d(kernel_size=3, stride=2)
         # 全连接
-        self.fc = th.nn.Linear(128, 5, bias=False)
+        self.fc = th.nn.Linear(320, 5, bias=False)
 
     def forward(self, x):
+        batch_size=x.shape[0]
         x = self.conv1(x)
         x = F.relu(x)
         x = self.pooling1(x)
+        #print(x.shape)
         x = self.pooling2(F.relu(self.conv2(x)))
+        #print(x.shape)
         x = self.pooling3(F.relu(self.conv3(x)))
-        x = x.view(128, -1)
+        #print(x.shape)
+        x=F.relu(self.conv4(x))
+        #print(x.shape)
+        x = x.view(batch_size, -1)
+        print(x.shape)
         x = self.fc(x)
 
         return x
